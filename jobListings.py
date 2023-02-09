@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 import time
 import requests
 import re
-import _thread
+import threading
 
 socks.set_default_proxy(socks.SOCKS5, 'localhost', 9150)
 socket.socket = socks.socksocket
@@ -41,7 +41,6 @@ def getPage(url):
     return bs
 
 def ugandaJob(keyword):
-    print('started')
     keyword = keyword.replace(' ', '+')
     url = 'https://www.ugandajob.com/job-vacancies-search-uganda/' + keyword + '?'
     bs = getPage(url)
@@ -110,13 +109,11 @@ def everJobs(keyword):
             content.printListing()
 
 def main():
-    jobs = ['python developer', 'java developer', \
-    # 'software engineer', 'credit analyst', 'intern'
-    ]
+    jobs = ['python developer', 'java developer', 'software engineer', 'credit analyst', 'intern']
     for job in jobs:
-        _thread.start_new_thread(theUgandanJobLine, (job,))
-        _thread.start_new_thread(ugandaJob, (job,))
-        _thread.start_new_thread(everJobs, (job,))
+        threading.Thread(target=theUgandanJobLine, args=(job,)).start()
+        threading.Thread(target=ugandaJob, args=(job,)).start()
+        threading.Thread(target=everJobs, args=(job,)).start()
 
 if __name__ == '__main__':
     main()
