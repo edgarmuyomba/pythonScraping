@@ -19,10 +19,10 @@ headers = {
 
 class Content:
     def __init__(self, url, title, company, location):
-        self.title = title 
-        self.company = company 
-        self.location = location 
-        self.url = url
+        self.title = title.strip()
+        self.company = company.strip()
+        self.location = location.strip() 
+        self.url = url.strip()
 
     def printListing(self):
         print(
@@ -69,7 +69,7 @@ def theUgandanJobLine(keyword):
     results = resultBlock.find_all('div', id=re.compile('^(post-)[0-9].+'))
     for result in results:
         try:
-            url = result.find('a', href=re.compile('^(https://www.theugandanjobline.com).+')).attrs['href']
+            url = result.find('a', href=re.compile('^(https://www.theugandanjobline.com).*')).attrs['href']
             time.sleep(2)
             details = result.find_all('p')
             title = details[0].get_text()
@@ -89,6 +89,24 @@ def theUgandanJobLine(keyword):
             content = Content(url, title, company, location)
             content.printListing()     
 
+def everJobs(keyword):
+    keyword = keyword.replace(' ', '%20')
+    url = 'https://everjobs.ug/?query=' + keyword + '&category'
+    bs = getPage(url)
+    results = bs.find('table', {'id': 'wpjb-job-list'}).children
+    for result in results:
+        try:
+            url = result.find('a', href=re.compile('^(https://everjobs.ug/job).*')).attrs['href']
+            title = result.find('td', {'class': 'wpjb-column-title'}).get_text()
+            time.sleep(2)
+            company = result.find('small', {'class': 'wpjb-sub'}).get_text()
+            location = result.find('td', {'class': 'wpjb-column-location'}).get_text()
+        except AttributeError as e:
+            print(e)
+        else:
+            content = Content(url, title, company, location)
+            content.printListing()
+
 if __name__ == '__main__':
-    theUgandanJobLine('python developer')
+    everJobs('python developer')
 
