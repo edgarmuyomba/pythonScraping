@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 import time
 import requests
 import re
+import _thread
 
 socks.set_default_proxy(socks.SOCKS5, 'localhost', 9150)
 socket.socket = socks.socksocket
@@ -40,6 +41,7 @@ def getPage(url):
     return bs
 
 def ugandaJob(keyword):
+    print('started')
     keyword = keyword.replace(' ', '+')
     url = 'https://www.ugandajob.com/job-vacancies-search-uganda/' + keyword + '?'
     bs = getPage(url)
@@ -100,13 +102,21 @@ def everJobs(keyword):
             title = result.find('td', {'class': 'wpjb-column-title'}).get_text()
             time.sleep(2)
             company = result.find('small', {'class': 'wpjb-sub'}).get_text()
-            location = result.find('td', {'class': 'wpjb-column-location'}).get_text()
+            location = result.find('td', {'class': 'wpjb-column-location'}).get_text().split('\n')[2]
         except AttributeError as e:
             print(e)
         else:
             content = Content(url, title, company, location)
             content.printListing()
 
-if __name__ == '__main__':
-    everJobs('python developer')
+def main():
+    jobs = ['python developer', 'java developer', \
+    # 'software engineer', 'credit analyst', 'intern'
+    ]
+    for job in jobs:
+        _thread.start_new_thread(theUgandanJobLine, (job,))
+        _thread.start_new_thread(ugandaJob, (job,))
+        _thread.start_new_thread(everJobs, (job,))
 
+if __name__ == '__main__':
+    main()
