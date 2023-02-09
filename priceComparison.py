@@ -7,6 +7,13 @@ from bs4 import BeautifulSoup
 socks.set_default_proxy(socks.SOCKS5, 'localhost', 9150)
 socket.socket = socks.socksocket
 
+session = requests.Session()
+headers = {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5)'
+            'AppleWebKit 537.36 (KHTML, like Gecko) Chrome',
+            'Accept':'text/html,application/xhtml+xml,application/xml;'
+            'q=0.9,image/webp,*/*;q=0.8'}
+ 
+
 def averagePrice(adict):
     sum = 0
     for i in adict:
@@ -23,8 +30,9 @@ def compareFor(item):
     print('\nAlibaba prices: %.2f'%averagePrice(alibabaPrices))
 
 def getAlibaba(url):
-    html = urlopen(url)
-    bs = BeautifulSoup(html, 'html.parser')
+    global session, headers
+    html = session.get(url, headers=headers)
+    bs = BeautifulSoup(html.text, 'html.parser')
     resultPage = bs.find('div', {'id': 'organic-list app-organic-search__list'})
     results = resultPage.find_all('div', {'class': 'list-no-v2-outter'})
     top10 = dict()
@@ -39,8 +47,9 @@ def getAlibaba(url):
     return top10
 
 def getAmazon(url):
-    html = urlopen(url)
-    bs = BeautifulSoup(html, 'html.parser')
+    global session, headers
+    html = session.get(url, headers=headers)
+    bs = BeautifulSoup(html.text, 'html.parser')
     resultPage = bs.find('div', {'class': 's-main-slot s-result-list s-search-results sg-row'})
     top10 = dict()
     for i in range(10):
