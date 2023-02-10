@@ -7,10 +7,18 @@
     2. The program scrapes the prices of the top 10 results on the various ecommerce sites
     3. The program calculates the average price for each site and returns the results to the user
 
-## jobListing.py
+## jobListings.py
 
     This is a tool used to scrape websites for required job postings
     Its activity is masked using the tor client and temporary html headers while scraping
     The tool looks through the websites everjobs, theugandanjobline and ugandajob
     It uses 3 thread to look for the required job on all the websites simultaneously
     it organises the results found and presents the url, the job title, organisation and location of the job listing in the terminal
+
+## wikiProfileScraper.py
+
+    This is a program that scrapes wikipedia profile pages for details and information about the people
+    It starts with a base url then it collects the name, date of birth and birthplace of the person
+    It then organizes and formats them uniformly
+    It finally stores the information in a mysql database
+    Afterwards, it scrapes the rest of the page for more profile links and recursively processes them
