@@ -7,14 +7,15 @@ from requests import Session
 import time 
 from random import choice
 import pymysql
-
-socks.set_default_proxy(socks.SOCKS5, 'localhost', 9150)
-socket.socket = socks.socksocket
+import threading
 
 #Setting up a connection to mysql database to store the profiles
 conn = pymysql.connect(host='127.0.0.1', user='root', passwd='muyomba', db='mysql', charset='utf8')
 cur = conn.cursor()
 cur.execute ('USE wikipediaProfiles')
+
+socks.set_default_proxy(socks.SOCKS5, 'localhost', 9150)
+socket.socket = socks.socksocket
 
 session = Session()
 headers = {
@@ -40,7 +41,7 @@ class Content:
             f'Url: {self.url}\n'\
             f'Full Name: {self.name}\n'\
             f'Date of Birth: {self.dob}\n'\
-            f'Place of Birth: {self.birthPlace}\n'\
+            f'Place of Birth: {self.birthPlace}'
         )
 
 def getPage(url):
@@ -51,13 +52,17 @@ def getPage(url):
     html = session.get(url, headers=headers)
     bs = BeautifulSoup(html.text, 'html.parser')
     article = bs.find('div', {'id': 'mw-content-text'})
-    return article 
+    #Creating 2 threads to scrape the profile information if any and collect more links simultaneously
+    threading.Thread(target=getDetails, args=(bs, html.url)).start()
+    threading.Thread(target=getLinks, args=(bs,)).start()
 
-def getDetails(url):
+Profiles = set()
+
+def getDetails(bs, url):
     """
         A function used to obtain the details from the discovered profiles on wikipedia
     """
-    bs = getPage(url)
+    global Profiles
     time.sleep(2)
     try:
         name = bs.find('td', {'class': 'infobox-data nickname'}).get_text()
@@ -68,7 +73,10 @@ def getDetails(url):
         return None 
     else:
         content = Content(url, name, dob, birthPlace)
+        var = store(content.url, content.name, content.dob, content.birthPlace)
+        #checking to see if its a new profile. if it is, then add it to global list of profiles
         content.printProfile()
+        Profiles.add(content)
         #After printing the details, links to other profiles are discovered on the page
         getLinks(bs)
 
@@ -82,17 +90,21 @@ def getLinks(bs):
         link = choice(links)
         url = link.attrs['href']
         url = 'https://en.wikipedia.org' + url 
-        print(url,'\n')
-        getDetails(url)
+        print(url)
+        getPage(url)
 
 def store(url, name, dob, birthPlace):
-    cur.execute('INSERT INTO Profiles (url, fullname, DOB, birthPlace) VALUES (%s, %s, %s, %s)', (url, name, dob, birthPlace))
-    cur.commit()
+    #check and see if the profile was already stored
+    cur.execute('SELECT * FROM Profiles WHERE url = %s', url)
+    if cur.rowcount == 0:
+        cur.execute('INSERT INTO Profiles (url, fullname, DOB, birthPlace) VALUES (%s, %s, %s, %s)', (url, name, dob, birthPlace))
+        conn.commit()
+    else:
+        pass
 
 if __name__ == '__main__':
-    try:
-        getDetails('https://en.wikipedia.org/wiki/Christiano_Ronaldo')
-    finally:
-        cur.close()
-        conn.close()
-
+    # try:
+    getPage('https://en.wikipedia.org/wiki/Christiano_Ronaldo')
+    # finally:
+        # cur.close()
+        # conn.close()
