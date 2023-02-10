@@ -8,6 +8,7 @@ import time
 from random import choice
 import pymysql
 import threading
+from queue import Queue
 
 #Setting up a connection to mysql database to store the profiles
 conn = pymysql.connect(host='127.0.0.1', user='root', passwd='muyomba', db='mysql', charset='utf8')
@@ -25,6 +26,9 @@ headers = {
     'q=0.9,image/webp,*/*;q=0.8'
 }
 
+#creating a queue to store profiles before they're stored to the database
+queue = Queue()
+
 class Content:
     """
         A class used to organise the details about the discovered profiles
@@ -37,7 +41,7 @@ class Content:
 
     def printProfile(self):
         print(
-            'Found a new profile...\n'\
+            '\nFound a new profile...\n'\
             f'Url: {self.url}\n'\
             f'Full Name: {self.name}\n'\
             f'Date of Birth: {self.dob}\n'\
@@ -48,10 +52,11 @@ def getPage(url):
     """
         A function used to obtain the article section of a wikipedia page
     """
-    global session, headers 
+    global session, headers, queue
     html = session.get(url, headers=headers)
     bs = BeautifulSoup(html.text, 'html.parser')
     article = bs.find('div', {'id': 'mw-content-text'})
+    time.sleep(2)
     #Creating 2 threads to scrape the profile information if any and collect more links simultaneously
     threading.Thread(target=getDetails, args=(bs, html.url)).start()
     threading.Thread(target=getLinks, args=(bs,)).start()
@@ -73,11 +78,12 @@ def getDetails(bs, url):
         return None 
     else:
         content = Content(url, name, dob, birthPlace)
-        var = store(content.url, content.name, content.dob, content.birthPlace)
-        #checking to see if its a new profile. if it is, then add it to global list of profiles
+        # var = store(content.url, content.name, content.dob, content.birthPlace)
+        queue.put({'url': content.url, 'name': content.name, 'dob': content.dob, 'birthPlace': content.birthPlace})
         content.printProfile()
         Profiles.add(content)
         #After printing the details, links to other profiles are discovered on the page
+        time.sleep(1)
         getLinks(bs)
 
 def getLinks(bs):
@@ -93,18 +99,19 @@ def getLinks(bs):
         print(url)
         getPage(url)
 
-def store(url, name, dob, birthPlace):
+def store(queue):
     #check and see if the profile was already stored
-    cur.execute('SELECT * FROM Profiles WHERE url = %s', url)
-    if cur.rowcount == 0:
-        cur.execute('INSERT INTO Profiles (url, fullname, DOB, birthPlace) VALUES (%s, %s, %s, %s)', (url, name, dob, birthPlace))
-        conn.commit()
-    else:
-        pass
+    while True:
+        if not queue.empty():
+            profile = queue.get()
+            url, name, dob, birthPlace = profile['url'], profile['name'], profile['dob'], profile['birthPlace']
+            cur.execute('SELECT * FROM Profiles WHERE url = %s', url)
+            if cur.rowcount == 0:
+                cur.execute('INSERT INTO Profiles (url, fullname, DOB, birthPlace) VALUES (%s, %s, %s, %s)', (url, name, dob, birthPlace))
+                conn.commit()
+            else:
+                pass
 
 if __name__ == '__main__':
-    # try:
-    getPage('https://en.wikipedia.org/wiki/Christiano_Ronaldo')
-    # finally:
-        # cur.close()
-        # conn.close()
+    threading.Thread(target=getPage, args=('https://en.wikipedia.org/wiki/Christiano_Ronaldo',)).start()
+    threading.Thread(target=store, args=(queue,)).start()

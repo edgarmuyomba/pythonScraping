@@ -22,3 +22,4 @@
     It then organizes and formats them uniformly
     It finally stores the information in a mysql database
     Afterwards, it scrapes the rest of the page for more profile links and recursively processes them
+    The program creates multiple threads and detail collection, link collection and dB storage are all done by separate threads
