@@ -45,8 +45,11 @@ finally:
             link = url + link 
             title = article.find('h3', {'class': 'latest-news-title mb-2'}).get_text()
             summary = article.find('p', {'class': 'latest-news-desc mt-n4'}).get_text()
+            image = article.find('div', {'class': 'ma-0 pa-0 col-md-6 col'}).find('div', {'class': 'v-image__image v-image__image--preload v-image__image--cover'}).attrs['style']
+            image = re.search(r'^.*url\((.*")', image).group(1)
         except AttributeError as e:
             print(e)
         else:
-            print(f'{link}\n\{title}\n{summary}\n\n\n')
+            print(f'{title}\n{summary}\n{image}\n\n\n')
+            # print(f'{image}')
     driver.close()
