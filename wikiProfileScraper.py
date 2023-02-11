@@ -45,7 +45,7 @@ class Content:
             f'Url: {self.url}\n'\
             f'Full Name: {self.name}\n'\
             f'Date of Birth: {self.dob}\n'\
-            f'Place of Birth: {self.birthPlace}'
+            f'Place of Birth: {self.birthPlace}\n'
         )
 
 def getPage(url):
