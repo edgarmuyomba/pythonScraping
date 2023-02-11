@@ -20,9 +20,9 @@ headers = {
     'q=0.9,image/webp,*/*;q=0.8'
 }
 
-options = webdriver.FirefoxOptions()
-options.headless = True
-driver = webdriver.Firefox(executable_path=r'F:\geckodriver\geckodriver.exe', options=options)
+# options = webdriver.FirefoxOptions()
+# options.headless = True
+# driver = webdriver.Firefox(executable_path=r'F:\geckodriver\geckodriver.exe', options=options)
 
 def getPage(url):
     global session, headers 
@@ -30,26 +30,16 @@ def getPage(url):
     bs = BeautifulSoup(html.text, 'html.parser')
     return bs 
 
-url = 'https://www.newvision.co.ug/'
-driver.get(url)
-try:
-    element = WebDriverWait(driver, 10).until(
-                            EC.presence_of_element_located((By.CLASS_NAME, 'section-title-left')))
-finally:
-    page = driver.page_source
-    bs = BeautifulSoup(page, 'html.parser')
-    articles = bs.find_all('div', {'class': 'home-ads-section col-sm-12 col-md-6 col-lg-6 col-xl-6 col'})
-    for article in articles:
-        try:
-            link = article.find('a', href=re.compile('^(/category/world/).*')).attrs['href']
-            link = url + link 
-            title = article.find('h3', {'class': 'latest-news-title mb-2'}).get_text()
-            summary = article.find('p', {'class': 'latest-news-desc mt-n4'}).get_text()
-            image = article.find('div', {'class': 'ma-0 pa-0 col-md-6 col'}).find('div', {'class': 'v-image__image v-image__image--preload v-image__image--cover'}).attrs['style']
-            image = re.search(r'^.*url\((.*")', image).group(1)
-        except AttributeError as e:
-            print(e)
-        else:
-            print(f'{title}\n{summary}\n{image}\n\n\n')
-            # print(f'{image}')
-    driver.close()
+url = 'https://www.independent.co.ug/business-news'
+bs=getPage(url)
+articles = bs.find_all('article', {'class': 'item-list'})
+for article in articles:
+    try:
+        link = article.find('a', href=re.compile('^(https://www.independent.co.ug/).*')).attrs['href']
+        title = article.find('h2', {'class': 'post-box-title'}).get_text()
+        summary = article.find('div', {'class': 'entry'}).get_text()
+        image = article.find('img', src=re.compile('^.*(/wp-content/uploads/).*')).attrs['src']
+    except AttributeError as e:
+        print(e)
+    else:
+        print(f'{title}\n{summary}\n{image}\n\n\n')

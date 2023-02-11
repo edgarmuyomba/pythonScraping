@@ -9,8 +9,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait 
 from selenium.webdriver.support import expected_conditions as EC
 
-socks.set_default_proxy(socks.SOCKS5, 'localhost', 9150)
-socket.socket = socks.socksocket 
+# socks.set_default_proxy(socks.SOCKS5, 'localhost', 9150)
+# socket.socket = socks.socksocket 
 
 session = Session()
 headers = {
@@ -25,7 +25,7 @@ options.headless = True
 driver = webdriver.Firefox(executable_path=r'F:\geckodriver\geckodriver.exe', options=options)
 
 class Article:
-    def __init__(self, url, title, summary, image=None):
+    def __init__(self, url, title, summary, image):
         self.url = url.strip() 
         self.title = title.strip() 
         self.summary = summary.strip() 
@@ -36,7 +36,6 @@ class Article:
                 f'Title: {self.title}\n'\
                 f'Summary: {self.summary}\n'
             
-
 def getPage(url):
     global session, headers 
     html = session.get(url, headers=headers)
@@ -74,10 +73,29 @@ def scrapeNewVision(url):
                 link = url + link 
                 title = article.find('h3', {'class': 'latest-news-title mb-2'}).get_text()
                 summary = article.find('p', {'class': 'latest-news-desc mt-n4'}).get_text()
+                image = article.find('div', {'class': 'ma-0 pa-0 col-md-6 col'}).find('div', {'class': 'v-image__image v-image__image--preload v-image__image--cover'}).attrs['style']
+                image = re.search(r'^.*url\((.*")', image).group(1)
             except AttributeError as e:
                 print(e)
             else:
-                article = Article(link, title, summary)
+                article = Article(link, title, summary, image)
                 print(article)   
 
-scrapeDailyMonitor('https://www.monitor.co.ug/uganda')
+def scrapeIndependent(url):
+    bs = getPage(url)
+    articles = bs.find_all('article', {'class': 'item-list'})
+    for article in articles:
+        try:
+            link = article.find('a', href=re.compile('^(https://www.independent.co.ug/).*')).attrs['href']
+            title = article.find('h2', {'class': 'post_box-title'}).get_text()
+            summary = article.find('div', {'class': 'entry'}).find('p').get_text()
+            image = article.find('img', src=re.compile('^.*(/wp-content/uploads/).*')).attrs['src']
+        except AttributeError as e:
+            print(e)
+        else:
+            article = Article(link, title, summary, image)
+            print(article)
+
+dailyMonitor = 'https://www.monitor.co.ug/'
+newVision = 'https://www.newvision.co.ug/'
+independent = 'https//www.independent.co.ug/business-news/'
