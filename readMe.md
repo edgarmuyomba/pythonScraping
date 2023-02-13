@@ -23,3 +23,10 @@
     It finally stores the information in a mysql database
     Afterwards, it scrapes the rest of the page for more profile links and recursively processes them
     The program creates multiple threads and detail collection, link collection and dB storage are all done by separate threads
+
+## newsAggregator.py
+
+    This is a program used to collect news articles from various websites and publish them in on a central site
+    the program visits the top 5 news paper companies in Uganda namely: The daily monitor for national news, New Vision for world news,
+    The independent for business news, KFM for lifestyle news and the kampala sun for gossip
+    The scraper is powered by 5 independent scrapers that collect information from the webistes simultaneously

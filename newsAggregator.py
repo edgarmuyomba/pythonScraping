@@ -8,6 +8,8 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait 
 from selenium.webdriver.support import expected_conditions as EC
+import time 
+import threading
 
 # socks.set_default_proxy(socks.SOCKS5, 'localhost', 9150)
 # socket.socket = socks.socksocket 
@@ -44,6 +46,7 @@ def getPage(url):
 
 def scrapeDailyMonitor(url):
     bs = getPage(url)
+    time.sleep(2)
     articles = bs.find_all('section', {'class': 'nested-cols headline-teasers-row'})
     for article in articles:
         try:
@@ -60,12 +63,14 @@ def scrapeDailyMonitor(url):
 
 def scrapeNewVision(url):
     driver.get(url)
+    time.sleep(2)
     try:
         element = WebDriverWait(driver, 10).until(
                                 EC.presence_of_element_located((By.CLASS_NAME, 'section-title-left')))
     finally:
         page = driver.page_source
         bs = BeautifulSoup(page, 'html.parser')
+        time.sleep(2)
         articles = bs.find_all('div', {'class': 'home-ads-section col-sm-12 col-md-6 col-lg-6 col-xl-6 col'})
         for article in articles:
             try:
@@ -83,6 +88,7 @@ def scrapeNewVision(url):
 
 def scrapeIndependent(url):
     bs = getPage(url)
+    time.sleep(2)
     articles = bs.find_all('article', {'class': 'item-list'})
     for article in articles:
         try:
@@ -98,6 +104,7 @@ def scrapeIndependent(url):
 
 def scrapeKfm(url):
     bs = getPage(url)
+    time.sleep(2)
     articles = bs.find_all('article', {'class': 'jeg_post jeg_pl_md_2 format-standard'})
     for article in articles:
         try:
@@ -113,6 +120,7 @@ def scrapeKfm(url):
 
 def scrapeKampalaSun(url):
     bs = getPage(url)
+    time.sleep(2)
     articles = bs.find_all('li', {'class': 'list-post pclist-layout'})
     for article in articles:
         try:
@@ -126,8 +134,21 @@ def scrapeKampalaSun(url):
             article = Article(link, title, summary, image)
             print(article)
 
-dailyMonitor = 'https://www.monitor.co.ug/'
-newVision = 'https://www.newvision.co.ug/'
-independent = 'https//www.independent.co.ug/business-news/'
-kfm = "https://www.kfm.co.ug/category/lifestyle"
-kampalaSun = "https://www.kampalasun.co.ug/category/sex-relationships/"
+dailyMonitor = 'https://www.monitor.co.ug/' #National news
+newVision = 'https://www.newvision.co.ug/' #World news
+independent = 'https://www.independent.co.ug/business-news/' #Business news
+kfm = "https://www.kfm.co.ug/category/lifestyle" #Lifestyle news
+kampalaSun = "https://www.kampalasun.co.ug/category/sex-relationships/" #Gossip
+
+t1 = threading.Thread(target=scrapeDailyMonitor, args=(dailyMonitor,))
+t2 = threading.Thread(target=scrapeNewVision, args=(newVision,))
+t3 = threading.Thread(target=scrapeIndependent, args=(independent,))
+t4 = threading.Thread(target=scrapeKfm, args=(kfm,))
+t5 = threading.Thread(target=scrapeKampalaSun, args=(kampalaSun,))
+
+if __name__ == '__main__':
+    t1.start()
+    t2.start()
+    t3.start()
+    t4.start()
+    t5.start()
