@@ -30,16 +30,17 @@ def getPage(url):
     bs = BeautifulSoup(html.text, 'html.parser')
     return bs 
 
-url = 'https://www.independent.co.ug/business-news'
+url = "https://www.kampalasun.co.ug/category/sex-relationships/"
 bs=getPage(url)
-articles = bs.find_all('article', {'class': 'item-list'})
+articles = bs.find_all('li', {'class': 'list-post pclist-layout'})
 for article in articles:
     try:
-        link = article.find('a', href=re.compile('^(https://www.independent.co.ug/).*')).attrs['href']
-        title = article.find('h2', {'class': 'post-box-title'}).get_text()
-        summary = article.find('div', {'class': 'entry'}).get_text()
-        image = article.find('img', src=re.compile('^.*(/wp-content/uploads/).*')).attrs['src']
+        link = article.find('a', href=re.compile('^.*(.co.ug/).*')).attrs['href']
+        title = article.find('h2', {'class': 'penci-entry-title entry-title grid-title'}).get_text()
+        summary = article.find('div', {'class': 'item-content entry-content'}).get_text()
+        image = article.find('a', {'class': 'penci-image-holder penci-lazy'}).attrs['data-bgset']
     except AttributeError as e:
         print(e)
     else:
-        print(f'{title}\n{summary}\n{image}\n\n\n')
+        # print(f'{title}\n{summary}\\n\n\n')
+        print(image,'\n')

@@ -96,6 +96,38 @@ def scrapeIndependent(url):
             article = Article(link, title, summary, image)
             print(article)
 
+def scrapeKfm(url):
+    bs = getPage(url)
+    articles = bs.find_all('article', {'class': 'jeg_post jeg_pl_md_2 format-standard'})
+    for article in articles:
+        try:
+            link = article.find('a', href=re.compile('^.*(/lifestyle/).*')).attrs['href']
+            title = article.find('h3', {'class': 'jeg_post_title'}).get_text()
+            summary = article.find('div', {'class': 'jeg_post_excerpt'}).get_text()
+            image = article.find('img').attrs['data-src']
+        except AttributeError as e:
+            print(e)
+        else:
+            article = Article(link, title, summary, image)
+            print(article)
+
+def scrapeKampalaSun(url):
+    bs = getPage(url)
+    articles = bs.find_all('li', {'class': 'list-post pclist-layout'})
+    for article in articles:
+        try:
+            link = article.find('a', href=re.compile('^.*(.co.ug/).*')).attrs['href']
+            title = article.find('h2', {'class': 'penci-entry-title entry-title grid-title'}).get_text()
+            summary = article.find('div', {'class': 'item-content entry-content'}).get_text()
+            image = article.find('a', {'class': 'penci-image-holder penci-lazy'}).attrs['data-bgset']
+        except AttributeError as e:
+            print(e)
+        else:
+            article = Article(link, title, summary, image)
+            print(article)
+
 dailyMonitor = 'https://www.monitor.co.ug/'
 newVision = 'https://www.newvision.co.ug/'
 independent = 'https//www.independent.co.ug/business-news/'
+kfm = "https://www.kfm.co.ug/category/lifestyle"
+kampalaSun = "https://www.kampalasun.co.ug/category/sex-relationships/"
