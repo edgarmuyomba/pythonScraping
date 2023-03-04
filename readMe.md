@@ -1,5 +1,10 @@
 ## My Python Scraping Projects
 
+To get started with running any of the projects, first install the necessary requirements.
+Run the following command:
+```
+    pip install -r requirements.txt
+```
 ## priceComparison.py
 
     This is a tool used to compare prices of products on various ecommerce sites
